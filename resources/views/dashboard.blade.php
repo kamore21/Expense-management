@@ -346,7 +346,7 @@
                                 <td>
                                     <span class="ledger-status ledger-status-{{ \Illuminate\Support\Str::slug($transaction['status']) }}">{{ $transaction['status'] }}</span>
                                     @if ($transaction['kind'] === 'invoice' && $record->paid_at)
-                                        <small class="ledger-payment-date">Paid <x-regional-date :value="$record->paid_at" date-only /></small>
+                                        <small class="ledger-payment-date"><x-regional-date :value="$record->paid_at" date-only prefix="Paid " /></small>
                                     @endif
                                 </td>
                                 <td class="ledger-number-cell {{ $transaction['kind'] === 'expense' ? 'ledger-amount-expense' : 'ledger-amount-invoice' }}">{{ $transaction['kind'] === 'expense' ? '-' : '+' }}<x-money :amount="$transaction['amount']" /></td>

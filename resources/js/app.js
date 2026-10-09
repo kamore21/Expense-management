@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.querySelectorAll('[data-regional-date]').forEach((element) => {
 		const locale = element.dataset.locale.replace(/_/g, '-');
 		const dateOnly = element.dataset.dateOnly === 'true';
+		const prefix = element.dataset.prefix ?? '';
 		const value = dateOnly ? `${element.dataset.value}T12:00:00Z` : element.dataset.value;
         const date = new Date(value);
 
@@ -36,13 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 		try {
-			element.textContent = new Intl.DateTimeFormat(locale, {
+			element.textContent = prefix + new Intl.DateTimeFormat(locale, {
 				dateStyle: 'medium',
 				...(dateOnly ? {} : { timeStyle: 'short' }),
 				timeZone: element.dataset.timeZone,
 			}).format(date);
 		} catch {
-			element.textContent = new Intl.DateTimeFormat('en', {
+			element.textContent = prefix + new Intl.DateTimeFormat('en', {
 				dateStyle: 'medium',
 				...(dateOnly ? {} : { timeStyle: 'short' }),
 				timeZone: 'UTC',

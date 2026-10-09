@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Intl\Currencies;
+use Symfony\Component\Intl\Exception\MissingResourceException;
 use Symfony\Component\Intl\Locales;
+use Symfony\Polyfill\Intl\Icu\Exception\NotImplementedException;
 
 class ProfileController extends Controller
 {
@@ -20,9 +22,9 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
-        $countries = Countries::getNames($user->locale);
+        $countries = $this->localizedNames($user->locale, fn (string $locale): array => Countries::getNames($locale));
         $currencies = array_intersect_key(
-            Currencies::getNames($user->locale),
+            $this->localizedNames($user->locale, fn (string $locale): array => Currencies::getNames($locale)),
             array_flip(Currencies::getCurrencyCodes()),
         );
         $locales = Locales::getNames('en');
@@ -38,6 +40,22 @@ class ProfileController extends Controller
             'timezones' => \DateTimeZone::listIdentifiers(),
             'currencyLocked' => $user->expenses()->exists() || $user->invoices()->exists() || $user->budgets()->exists(),
         ]);
+    }
+
+    /**
+     * Resolve translated display names for the user's locale, falling back to
+     * English when the ICU polyfill cannot collate the requested locale.
+     *
+     * @param  callable(string): array<string, string>  $lookup
+     * @return array<string, string>
+     */
+    private function localizedNames(string $locale, callable $lookup): array
+    {
+        try {
+            return $lookup($locale);
+        } catch (NotImplementedException|MissingResourceException) {
+            return $lookup('en');
+        }
     }
 
     /**
